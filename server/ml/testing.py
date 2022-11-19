@@ -6,6 +6,7 @@ import pandas as pd
 from ml.training import VALUE2CLASSES
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 image_transforms = transforms.Compose(
     [
         transforms.Resize(256),
@@ -27,7 +28,7 @@ def generate_csv(predictions: dict, img_names: list):
                 {"image_id": img_names[i], "highway": predictions[img_names[i]]}
             )
 
-
+    print("\ncsv output file is on '.issues_output.csv'\n")
 def load_model(path):
     # model = models.mobilenet_v3_small(pretrained=True)
     model = torch.load(path)
@@ -63,16 +64,9 @@ def infer(model, inputs) -> torch.Tensor:
 
 
 def main():
-    # issues_csv_folder_path = input("issues.csv parent folder: ")
-    issues_csv_folder_path = "/home/yigit/HackaTUM_Data/dataset/hackatum_dataset/issues"
+    issues_csv_folder_path = input("issues.csv parent folder: ")
+    # /home/yigit/HackaTUM_Data/dataset/hackatum_dataset/issues
 
-    # dataset = CustomImageDataset(issues_csv_folder_path, labels_file_name="issues.csv", transform= image_transforms)
-    # print(len(dataset), dataset)
-    # dataloader  = torch.utils.data.DataLoader(
-    # dataset, batch_size=1, num_workers=1
-    # )
-    # dataset_size = len(dataset)
-    # class_names = list(CLASSES.keys())
     import os
 
     model = get_model("trained_model")

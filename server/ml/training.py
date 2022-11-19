@@ -23,8 +23,6 @@ CLASSES = {"primary": 0, "footway": 1}
 VALUE2CLASSES = {0: "primary", 1: "footway"}
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(device)
-
 
 class CustomImageDataset(Dataset):
     def __init__(
@@ -190,10 +188,7 @@ def main():
                 transforms.AutoAugment(),
                 transforms.TrivialAugmentWide(),
                 transforms.RandomResizedCrop(224),
-                # transforms.RandomHorizontalFlip(),
-                # transforms.RandomCrop(320),
-                # transforms.Random
-                # transforms.CenterCrop(224),
+                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -221,35 +216,15 @@ def main():
     dataset_sizes = {x: len(image_datasets[x]) for x in ["train", "val"]}
     class_names = image_datasets["train"].classes
 
-    # Get a batch of training data
-
-    # model_ft = models.mobilenet_v3_small(pretrained=True, weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
-
     model_ft = models.mobilenet_v3_large(
         weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V1
     )
 
-    # print(model_ft)
-    # print(model_ft.classifier)
-    # num_ftrs = model_ft.classifier.in_features
-
-    # Here the size of each output sample is set to 2.
-    # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
-    print(class_names)
-    # print(model_ft)
-    # model_ft.fc = nn.Sequential(
-    #     nn.Linear(in_features=576,out_features=1024,bias=True),
-    #     nn.Hardshrink(),
-    #     nn.Dropout(p=0.2, inplace=True),
-    #     nn.Linear(in_features=1024, out_features= len(class_names), bias=True))
-
     model_ft.classifier[3] = nn.Linear(
         in_features=1280, out_features=len(class_names), bias=True
     )
-    #                             nn.Linear(in_features=512, out_features=len(class_names), bias=True))
+
     model_ft = model_ft.to(device)
-    # print(model_ft)
-    # for param in model_ft.parameters():
 
     for param in model_ft.features.parameters():
         param.requires_grad = False
@@ -260,7 +235,7 @@ def main():
     # optimizer_ft = optim.Adam(model_ft.parameters(),lr=0.001)
     optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
 
-    # Decay LR by a factor of 0.1 every 7 epochs
+    # Decay LR by a factor of 0.9 every 20 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=20, gamma=0.9)
     # print(model_ft)
     model_ft = train_model(
