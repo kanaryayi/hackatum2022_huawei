@@ -54,6 +54,7 @@ class ARActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         // Setup ARCore session lifecycle helper and configuration.
         arCoreSessionHelper = ARCoreSessionLifecycleHelper(this)
         // If Session creation or Session.resume() fails, display a message and log detailed

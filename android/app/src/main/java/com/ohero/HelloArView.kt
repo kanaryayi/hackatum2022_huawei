@@ -19,6 +19,7 @@ import android.content.res.Resources
 import android.opengl.GLSurfaceView
 import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -48,6 +49,12 @@ class HelloArView(val activity: ARActivity) : DefaultLifecycleObserver {
                 }
             }
         }
+
+    val fireButton = root.findViewById<ImageView>(R.id.fire_icon).apply {
+        setOnClickListener { v ->
+
+        }
+    }
 
     val session
         get() = activity.arCoreSessionHelper.session
