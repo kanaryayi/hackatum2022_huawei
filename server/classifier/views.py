@@ -16,4 +16,3 @@ def binary_classifier(request):
     # Classify the image here
     # ---
     return HttpResponse("success")
-

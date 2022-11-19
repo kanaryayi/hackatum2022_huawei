@@ -25,8 +25,15 @@ VALUE2CLASSES = {0: "primary", 1: "footway"}
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
+
 class CustomImageDataset(Dataset):
-    def __init__(self, img_dir, labels_file_name = "labels.csv", transform=None, target_transform=None):
+    def __init__(
+        self,
+        img_dir,
+        labels_file_name="labels.csv",
+        transform=None,
+        target_transform=None,
+    ):
         path = os.path.join(img_dir, labels_file_name)
         print(path)
         self.img_labels = pd.read_csv(path)
@@ -44,7 +51,7 @@ class CustomImageDataset(Dataset):
             self.img_dir, f"{str(self.img_labels.at[idx,'image_id'])}" + ".jpg"
         )
         image = Image.open(img_path)
-        label = str(self.img_labels.at[idx,"highway"])
+        label = str(self.img_labels.at[idx, "highway"])
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
@@ -186,7 +193,7 @@ def main():
                 # transforms.RandomHorizontalFlip(),
                 # transforms.RandomCrop(320),
                 # transforms.Random
-                #transforms.CenterCrop(224),
+                # transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -202,7 +209,7 @@ def main():
     }
     data_dir = "/home/yigit/HackaTUM_Data/dataset/hackatum_dataset"
     image_datasets = {
-        x: CustomImageDataset(os.path.join(data_dir, x), transform= data_transforms[x])
+        x: CustomImageDataset(os.path.join(data_dir, x), transform=data_transforms[x])
         for x in ["train", "val"]
     }
     dataloaders = {
@@ -236,7 +243,9 @@ def main():
     #     nn.Dropout(p=0.2, inplace=True),
     #     nn.Linear(in_features=1024, out_features= len(class_names), bias=True))
 
-    model_ft.classifier[3] = nn.Linear(in_features=1280, out_features=len(class_names), bias=True)
+    model_ft.classifier[3] = nn.Linear(
+        in_features=1280, out_features=len(class_names), bias=True
+    )
     #                             nn.Linear(in_features=512, out_features=len(class_names), bias=True))
     model_ft = model_ft.to(device)
     # print(model_ft)
@@ -264,7 +273,7 @@ def main():
         num_epochs=48,
     )
 
-    #visualize_model(model_ft, dataloaders)
+    # visualize_model(model_ft, dataloaders)
 
 
 if __name__ == "__main__":
