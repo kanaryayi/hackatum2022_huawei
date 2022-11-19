@@ -1,7 +1,8 @@
-from __future__ import print_function, division
+
 
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
@@ -12,9 +13,37 @@ import matplotlib.pyplot as plt
 import time
 import os
 import copy
+import pandas as pd
 
+labels_file_name = "labels.csv" # path of the file
+
+torch.manual_seed(17)
         # Data augmentation and normalization for training
-    # Just normalization for validation
+        ## Just normalization for validation
+# from torchvision.io import read_image
+from PIL import Image
+CLASSES = {"primary" : 0, "footway" : 1}
+
+class CustomImageDataset(Dataset):
+    def __init__(self, img_dir, transform=None, target_transform=None):
+        self.img_labels = pd.read_csv(os.path.join(img_dir,labels_file_name))
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+        self.classes = CLASSES
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir, f"{str(self.img_labels.iloc[idx, 0])}"+".jpg")
+        image = Image.open(img_path)
+        label = str(self.img_labels.iloc[idx, 1])
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -49,7 +78,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # Iterate over data.
             for inputs, labels in dataloaders[phase]:
+                # labels = torch.Tensor()
                 inputs = inputs.to(device)
+                labels = [CLASSES.get(i) for i in labels]
+                # print("res", labels)
+                labels = torch.Tensor(labels)
+                labels = labels.type(torch.uint8)
+                # labels = 
                 labels = labels.to(device)
 
                 # zero the parameter gradients
@@ -60,8 +95,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
                     _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels)
+                    # print(f"labels : {labels} \n preds : {preds}, \noutputs : {outputs}")
 
+
+                    loss = criterion(outputs, labels)
+                    
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
@@ -122,16 +160,16 @@ def visualize_model(model, num_images=6):
 def save_model(model, path):
     torch.save(model.state_dict(),path)
  
-def load_model():
+def load_model(path):
     model = models.mobile_net_v3_small(pretrained=True)
-    model.load_state_dict(torch.load(PATH))
+    model.load_state_dict(torch.load(path))
     model.eval()
     return model
 data_transforms = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
-        transforms.
+        # transforms.
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
@@ -143,7 +181,7 @@ data_transforms = {
     ]),
 }
 data_dir = '/home/yigit/HackaTUM_Data/dataset/hackatum_dataset'
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
+image_datasets = {x: CustomImageDataset(os.path.join(data_dir, x),
                                         data_transforms[x])
                 for x in ['train', 'val']}
 dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
@@ -155,35 +193,47 @@ class_names = image_datasets['train'].classes
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Get a batch of training data
-inputs, classes = next(iter(dataloaders['train']))
 
-# Make a grid from batch
-out = torchvision.utils.make_grid(inputs)
+# model_ft = models.mobilenet_v3_small(pretrained=True, weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
 
-imshow(out, title=[class_names[x] for x in classes])
+model_ft = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
 
-model_ft = models.mobile_net_v3_small(pretrained=True)
-num_ftrs = model_ft.fc.in_features
+# print(model_ft)
+# print(model_ft.classifier)
+#num_ftrs = model_ft.classifier.in_features
+
 # Here the size of each output sample is set to 2.
 # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
-model_ft.fc = nn.Linear(num_ftrs, len(class_names))
-
+print(class_names)
+# print(model_ft)
+# model_ft.fc = nn.Sequential(
+#     nn.Linear(in_features=576,out_features=1024,bias=True),
+#     nn.Hardshrink(),
+#     nn.Dropout(p=0.2, inplace=True),
+#     nn.Linear(in_features=1024, out_features= len(class_names), bias=True))
+ 
+model_ft.fc = nn.Linear(in_features=512, out_features=len(class_names), bias=True)
 model_ft = model_ft.to(device)
+# print(model_ft)
+#for param in model_ft.parameters():
 
-for param in model_ft.parameters():
+for param in model_ft.features.parameters():
     param.requires_grad = False
 
 
 criterion = nn.CrossEntropyLoss()
 
 # Observe that all parameters are being optimized
-optimizer_ft = optim.Adam(mlr=0.001, momentum=0.9)
+# optimizer_ft = optim.Adam(model_ft.parameters(),lr=0.001)
+optimizer_ft = optim.Adam(model_ft.parameters(),lr=0.001)
 
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
 
 model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
                        num_epochs=25)
+save_model(model_ft)
 
 visualize_model(model_ft)
+
 
