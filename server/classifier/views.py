@@ -15,14 +15,16 @@ def binary_classifier(request):
     base64img = json.loads(request.body)["image"]
     image = Image.open(io.BytesIO(base64.decodebytes(str.encode(base64img[22:]))))
     # image_np = np.array(image)
-
+    
     # Classify the image here
     # ---
-
-    output = ml.infer(image)
-
+    
+    output = ml.infer(model, image)
+    
+    print(f"Predicted as: {output}")
+    
     #####################################
-    #### Send the output to the OpenStreet
+    #### end the output to the OpenStreet
     #####################################
-
+    
     return HttpResponse("success", json)

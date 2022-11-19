@@ -51,8 +51,8 @@ def preprocess(img):
     return img
 
 
-def get_model(path):
-    return load_model(path)
+def get_model():
+    return load_model("trained_model")
 
 
 def infer(model, inputs) -> torch.Tensor:
@@ -69,7 +69,7 @@ def infer(model, inputs) -> torch.Tensor:
 def main():
     issues_csv_folder_path = input("issues.csv parent folder: ")
     # /home/yigit/HackaTUM_Data/dataset/hackatum_dataset/issues
-    model = get_model("trained_model")
+    model = get_model()
     img_labels = pd.read_csv(os.path.join(issues_csv_folder_path, "issues.csv"))
     dataset_size = len(img_labels.index)
     predictions = {}

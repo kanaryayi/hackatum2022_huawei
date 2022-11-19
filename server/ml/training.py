@@ -187,9 +187,12 @@ def main():
         "train": transforms.Compose(
             [
                 transforms.AutoAugment(),
+                # transforms.AugMix(),
                 transforms.TrivialAugmentWide(),
                 transforms.RandomResizedCrop(224),
                 transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(degrees=(0,30)),
+                transforms.RandomAffine(degrees=(0,30)),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -203,7 +206,8 @@ def main():
             ]
         ),
     }
-    data_dir = "/home/yigit/HackaTUM_Data/dataset/hackatum_dataset"
+    # "/home/yigit/HackaTUM_Data/dataset/hackatum_dataset"
+    data_dir = input("Enter dataset folder path: ")
     image_datasets = {
         x: CustomImageDataset(os.path.join(data_dir, x), transform=data_transforms[x])
         for x in ["train", "val"]
@@ -237,7 +241,7 @@ def main():
     optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
 
     # Decay LR by a factor of 0.9 every 20 epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=20, gamma=0.9)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.9)
     # print(model_ft)
     model_ft = train_model(
         model_ft,
@@ -246,7 +250,7 @@ def main():
         criterion,
         optimizer_ft,
         exp_lr_scheduler,
-        num_epochs=48,
+        num_epochs=65,
     )
 
     # visualize_model(model_ft, dataloaders)
