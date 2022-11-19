@@ -1,5 +1,6 @@
 import csv
 import torch
+import os
 from torchvision import transforms
 from PIL import Image
 import pandas as pd
@@ -29,6 +30,8 @@ def generate_csv(predictions: dict, img_names: list):
             )
 
     print("\ncsv output file is on '.issues_output.csv'\n")
+
+
 def load_model(path):
     # model = models.mobilenet_v3_small(pretrained=True)
     model = torch.load(path)
@@ -66,9 +69,6 @@ def infer(model, inputs) -> torch.Tensor:
 def main():
     issues_csv_folder_path = input("issues.csv parent folder: ")
     # /home/yigit/HackaTUM_Data/dataset/hackatum_dataset/issues
-
-    import os
-
     model = get_model("trained_model")
     img_labels = pd.read_csv(os.path.join(issues_csv_folder_path, "issues.csv"))
     dataset_size = len(img_labels.index)
@@ -78,16 +78,13 @@ def main():
         classes = img_labels.at[i, "highway"]
         img_name = img_labels.at[i, "image_id"]
         img_full_path = os.path.join(issues_csv_folder_path, f"{img_name}.jpg")
-        # print(img_full_path)
 
         with Image.open(img_full_path) as img:
-            # print(type(img))
-            # img = image_transforms(img)
             output = infer(model, img)
             print(f"issue was: {classes}, corrected to: {output}, image id: {img_name}")
             predictions[img_name] = output
             img_names.append(img_name)
-    # print(output)
+
     generate_csv(predictions, img_names)
 
 
