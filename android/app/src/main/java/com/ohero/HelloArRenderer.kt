@@ -270,12 +270,6 @@ class HelloArRenderer(val activity: ARActivity) :
         virtualSceneFramebuffer.resize(width, height)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE && data != null){
-            imageView.setImageBitmap(data.extras.get("data") as Bitmap)
-        }
-    }
     override fun onDrawFrame(render: SampleRender) {
         val session = session ?: return
 
@@ -363,7 +357,7 @@ class HelloArRenderer(val activity: ARActivity) :
         if (message == null) {
             activity.view.snackbarHelper.hide(activity)
         } else {
-            activity.view.snackbarHelper.showMessage(activity, message)
+            // activity.view.snackbarHelper.showMessage(activity, message)
         }
 
         // -- Draw background

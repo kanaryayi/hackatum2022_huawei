@@ -2,6 +2,7 @@ package com.ohero
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -112,23 +113,39 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun addMarker(latitude: Double, longitude: Double, mapView: MapView) {
-        val startPoint: GeoPoint = GeoPoint(latitude, longitude)
+    private fun addMarker(osmIssue: OSMIssue, mapView: MapView) {
+        val startPoint: GeoPoint = GeoPoint(osmIssue.latitude, osmIssue.longitude)
         val marker = Marker(mapView)
-        marker.setIcon(resources.getDrawable(R.drawable.chest))
+        marker.setIcon(
+            if (osmIssue.imageId == 123L) {
+                resources.getDrawable(R.drawable.chest)
+            } else {
+                resources.getDrawable(R.drawable.chest_gray)
+            }
+        )
         marker.position = startPoint
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        marker.setOnMarkerClickListener { marker2, mapView2 ->
-            startActivity(
-                Intent(this, ARActivity::class.java).apply {})
-            true
+
+        if (osmIssue.imageId == 123L) {
+            marker.setOnMarkerClickListener { marker2, mapView2 ->
+                startActivity(
+                    Intent(this, ARActivity::class.java).apply {})
+                true
+            }
         }
         mapView.getOverlays().add(marker)
     }
 
-
     private fun readMarkers(mapView: MapView) {
         val issueList: List<OSMIssue> = listOf(
+            OSMIssue(
+                123,
+                48.26266548288217,
+                11.667834830722132,
+                123,
+                false,
+                "Test"
+            ),
             OSMIssue(
                 173529288004582,
                 48.111355593621,
@@ -372,7 +389,7 @@ class MainActivity : AppCompatActivity() {
         );
 
         for (osmIssue in issueList) {
-            addMarker(osmIssue.latitude, osmIssue.longitude, mapView)
+            addMarker(osmIssue, mapView)
         }
     }
 }
