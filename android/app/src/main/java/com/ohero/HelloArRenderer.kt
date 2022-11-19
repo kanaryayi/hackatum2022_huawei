@@ -92,16 +92,10 @@ class HelloArRenderer(val activity: ARActivity) :
     }
 
     lateinit var render: SampleRender
-    lateinit var planeRenderer: PlaneRenderer
     lateinit var backgroundRenderer: BackgroundRenderer
     lateinit var virtualSceneFramebuffer: Framebuffer
     var hasSetTextureNames = false
     var tapped = false
-
-    // Point Cloud
-    lateinit var pointCloudVertexBuffer: VertexBuffer
-    lateinit var pointCloudMesh: Mesh
-    lateinit var pointCloudShader: Shader
 
     // Keep track of the last point cloud rendered to avoid updating the VBO if point cloud
     // was not changed.  Do this using the timestamp since we can't compare PointCloud objects.
@@ -151,7 +145,6 @@ class HelloArRenderer(val activity: ARActivity) :
         // Prepare the rendering objects.
         // This involves reading shaders and 3D model files, so may throw an IOException.
         try {
-            planeRenderer = PlaneRenderer(render)
             backgroundRenderer = BackgroundRenderer(render)
             virtualSceneFramebuffer = Framebuffer(render, /*width=*/ 1, /*height=*/ 1)
 
@@ -193,32 +186,6 @@ class HelloArRenderer(val activity: ARActivity) :
                 buffer
             )
             GLError.maybeThrowGLException("Failed to populate DFG texture", "glTexImage2D")
-
-            // Point cloud
-            pointCloudShader =
-                Shader.createFromAssets(
-                    render,
-                    "shaders/point_cloud.vert",
-                    "shaders/point_cloud.frag",
-                    /*defines=*/ null
-                )
-                    .setVec4(
-                        "u_Color",
-                        floatArrayOf(31.0f / 255.0f, 188.0f / 255.0f, 210.0f / 255.0f, 1.0f)
-                    )
-                    .setFloat("u_PointSize", 5.0f)
-
-            // four entries per vertex: X, Y, Z, confidence
-            pointCloudVertexBuffer =
-                VertexBuffer(render, /*numberOfEntriesPerVertex=*/ 4, /*entries=*/ null)
-            val pointCloudVertexBuffers = arrayOf(pointCloudVertexBuffer)
-            pointCloudMesh =
-                Mesh(
-                    render,
-                    Mesh.PrimitiveMode.POINTS, /*indexBuffer=*/
-                    null,
-                    pointCloudVertexBuffers
-                )
 
             // Virtual object to render (ARCore pawn)
             virtualObjectAlbedoTexture =
@@ -381,21 +348,10 @@ class HelloArRenderer(val activity: ARActivity) :
         camera.getViewMatrix(viewMatrix, 0)
         frame.acquirePointCloud().use { pointCloud ->
             if (pointCloud.timestamp > lastPointCloudTimestamp) {
-                pointCloudVertexBuffer.set(pointCloud.points)
                 lastPointCloudTimestamp = pointCloud.timestamp
             }
             Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
-            pointCloudShader.setMat4("u_ModelViewProjection", modelViewProjectionMatrix)
-            render.draw(pointCloudMesh, pointCloudShader)
         }
-
-        // Visualize planes.
-        planeRenderer.drawPlanes(
-            render,
-            session.getAllTrackables<Plane>(Plane::class.java),
-            camera.displayOrientedPose,
-            projectionMatrix
-        )
 
         // -- Draw occluded virtual objects
 

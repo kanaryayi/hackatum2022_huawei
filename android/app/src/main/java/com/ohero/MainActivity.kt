@@ -2,18 +2,18 @@ package com.ohero
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.ar.core.Config
 import com.google.ar.core.Session
-import com.ohero.ARActivity
 import com.google.ar.core.exceptions.*
-import common.helpers.DepthSettings
 import common.helpers.InstantPlacementSettings
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -32,7 +32,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var renderer: HelloArRenderer
 
     val instantPlacementSettings = InstantPlacementSettings()
-    val depthSettings = DepthSettings()
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +85,22 @@ class MainActivity : AppCompatActivity() {
         // Configure session features, including: Lighting Estimation, Depth mode, Instant Placement.
         arCoreSessionHelper.beforeSessionResume = ::configureSession
         lifecycle.addObserver(arCoreSessionHelper)
+
+        val okButton = findViewById<View>(R.id.info_ok_button) as Button
+        val infoView = findViewById<View>(R.id.info_view) as ConstraintLayout
+        if (intent.hasExtra("showInfo")) {
+            if (intent.getBooleanExtra("showInfo", false)) {
+                infoView.visibility = View.VISIBLE
+            } else {
+                val goldCoinText = findViewById<View>(R.id.coin_text) as TextView
+                goldCoinText.text = "1099"
+            }
+        } else {
+            infoView.visibility = View.VISIBLE
+        }
+        okButton.setOnClickListener {
+            infoView.visibility = View.GONE
+        }
     }
 
     // Configure the session, using Lighting Estimation, and Depth mode.

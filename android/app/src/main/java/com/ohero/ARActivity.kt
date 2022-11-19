@@ -15,10 +15,19 @@
  */
 package com.ohero
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.ar.core.Config
 import com.google.ar.core.Config.InstantPlacementMode
 import com.google.ar.core.Session
@@ -53,7 +62,6 @@ class ARActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
         // Setup ARCore session lifecycle helper and configuration.
         arCoreSessionHelper = ARCoreSessionLifecycleHelper(this)
@@ -93,6 +101,21 @@ class ARActivity : AppCompatActivity() {
 
         depthSettings.onCreate(this)
         instantPlacementSettings.onCreate(this)
+
+        val fireIcon = findViewById<View>(R.id.fire_icon) as ImageView
+        val okButton = findViewById<View>(R.id.ar_ok_button) as Button
+        val infoView = findViewById<View>(R.id.ar_view) as ConstraintLayout
+        okButton.setOnClickListener {
+            infoView.visibility = View.GONE
+            startActivity(
+                Intent(this, MainActivity::class.java).apply {
+                    putExtra("showInfo", false)
+                })
+        }
+
+        fireIcon.setOnClickListener {
+            infoView.visibility = View.VISIBLE
+        }
     }
 
     // Configure the session, using Lighting Estimation, and Depth mode.
