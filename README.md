@@ -13,6 +13,8 @@ Start server to handle image post requests and run CNN model to detect which cla
     python3 manage.py runserver
     
 ## Testing Object Classification pipeline
+
+Mobilenet_v3_large Transfer Learning
 ### Training and Validation
 After running below provide parent directory for the corresponding train/val dataset. 
 
